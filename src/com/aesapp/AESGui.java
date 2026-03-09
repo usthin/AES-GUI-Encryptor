@@ -1,101 +1,187 @@
 package com.aesapp;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
+import java.awt.*;
 
 public class AESGui {
 
     public static void createGUI() {
 
-        JFrame frame = new JFrame("AES Encryption System");
-        frame.setSize(600,500);
+        JFrame frame = new JFrame("AES Encryption & Decryption System");
+        frame.setSize(700,550);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setLayout(null);
+        frame.setLocationRelativeTo(null);
 
-        JTextArea inputText = new JTextArea();
-        inputText.setBounds(50,50,500,80);
-        frame.add(inputText);
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridBagLayout());
 
-        JTextField keyField = new JTextField();
-        keyField.setBounds(50,150,200,30);
-        frame.add(keyField);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8,8,8,8);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        JLabel inputLabel = new JLabel("Plaintext / Ciphertext:");
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        panel.add(inputLabel, gbc);
+
+        JTextArea inputArea = new JTextArea(5,40);
+        JScrollPane inputScroll = new JScrollPane(inputArea);
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 3;
+        panel.add(inputScroll, gbc);
+
+        gbc.gridwidth = 1;
+
+        JLabel keyLabel = new JLabel("Secret Key:");
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        panel.add(keyLabel, gbc);
+
+        JTextField keyField = new JTextField(20);
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        panel.add(keyField, gbc);
+
+        JLabel modeLabel = new JLabel("Mode:");
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        panel.add(modeLabel, gbc);
 
         String[] modes = {"ECB","CBC","CFB"};
         JComboBox<String> modeBox = new JComboBox<>(modes);
-        modeBox.setBounds(300,150,100,30);
-        frame.add(modeBox);
 
-        String[] keys = {"128","192","256"};
-        JComboBox<String> keyBox = new JComboBox<>(keys);
-        keyBox.setBounds(420,150,100,30);
-        frame.add(keyBox);
+        gbc.gridx = 1;
+        gbc.gridy = 3;
+        panel.add(modeBox, gbc);
 
-        JTextArea output = new JTextArea();
-        output.setBounds(50,300,500,80);
-        frame.add(output);
+        JLabel keyLengthLabel = new JLabel("Key Length:");
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        panel.add(keyLengthLabel, gbc);
 
-        JButton encryptBtn = new JButton("Encrypt");
-        encryptBtn.setBounds(150,220,120,40);
-        frame.add(encryptBtn);
+        String[] lengths = {"128","192","256"};
+        JComboBox<String> keyLengthBox = new JComboBox<>(lengths);
 
-        JButton decryptBtn = new JButton("Decrypt");
-        decryptBtn.setBounds(300,220,120,40);
-        frame.add(decryptBtn);
+        gbc.gridx = 1;
+        gbc.gridy = 4;
+        panel.add(keyLengthBox, gbc);
 
-        JButton saveBtn = new JButton("Save to File");
-        saveBtn.setBounds(200,400,150,30);
-        frame.add(saveBtn);
+        JLabel operationLabel = new JLabel("Operation:");
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        panel.add(operationLabel, gbc);
 
-        encryptBtn.addActionListener((ActionEvent e) -> {
+        String[] ops = {"Encrypt","Decrypt"};
+        JComboBox<String> operationBox = new JComboBox<>(ops);
+
+        gbc.gridx = 1;
+        gbc.gridy = 5;
+        panel.add(operationBox, gbc);
+
+        JButton runButton = new JButton("Run");
+        gbc.gridx = 0;
+        gbc.gridy = 6;
+        panel.add(runButton, gbc);
+
+        JButton saveButton = new JButton("Save Ciphertext");
+        gbc.gridx = 1;
+        gbc.gridy = 6;
+        panel.add(saveButton, gbc);
+
+        JButton loadButton = new JButton("Load From File");
+        gbc.gridx = 2;
+        gbc.gridy = 6;
+        panel.add(loadButton, gbc);
+
+        JLabel resultLabel = new JLabel("Result:");
+        gbc.gridx = 0;
+        gbc.gridy = 7;
+        panel.add(resultLabel, gbc);
+
+        JTextArea resultArea = new JTextArea(5,40);
+        resultArea.setLineWrap(true);
+        resultArea.setWrapStyleWord(true);
+
+        JScrollPane resultScroll = new JScrollPane(resultArea);
+
+        gbc.gridx = 0;
+        gbc.gridy = 8;
+        gbc.gridwidth = 3;
+        panel.add(resultScroll, gbc);
+
+        runButton.addActionListener(e -> {
 
             try {
 
-                String text = inputText.getText();
+                String text = inputArea.getText();
                 String key = keyField.getText();
+
+                if(key.isEmpty()) {
+                    resultArea.setText("Key cannot be empty.");
+                    return;
+                }
+
                 String mode = (String) modeBox.getSelectedItem();
-                int keyLen = Integer.parseInt((String) keyBox.getSelectedItem());
+                int keyLength = Integer.parseInt((String) keyLengthBox.getSelectedItem());
+                String operation = (String) operationBox.getSelectedItem();
 
-                String encrypted = AESUtil.encrypt(text,key,mode,keyLen);
+                if(operation.equals("Encrypt")) {
 
-                output.setText(encrypted);
+                    String encrypted = AESUtil.encrypt(text,key,mode,keyLength);
 
-            } catch(Exception ex){
-                output.setText("Error: "+ex.getMessage());
+                    resultArea.setText(encrypted);
+
+                } else {
+
+                    String decrypted = AESUtil.decrypt(text,key,mode,keyLength);
+
+                    resultArea.setText(decrypted);
+
+                }
+
+            } catch(Exception ex) {
+
+                resultArea.setText("Error: " + ex.getMessage());
+
             }
 
         });
 
-        decryptBtn.addActionListener((ActionEvent e) -> {
+        saveButton.addActionListener(e -> {
 
             try {
 
-                String text = inputText.getText();
-                String key = keyField.getText();
-                String mode = (String) modeBox.getSelectedItem();
-                int keyLen = Integer.parseInt((String) keyBox.getSelectedItem());
+                FileManager.saveToFile(resultArea.getText());
 
-                String decrypted = AESUtil.decrypt(text,key,mode,keyLen);
+                resultArea.setText("Ciphertext saved to ciphertext.txt");
 
-                output.setText(decrypted);
+            } catch(Exception ex) {
 
-            } catch(Exception ex){
-                output.setText("Error: "+ex.getMessage());
+                resultArea.setText("File save error.");
+
             }
 
         });
 
-        saveBtn.addActionListener(e -> {
+        loadButton.addActionListener(e -> {
 
             try {
 
-                FileManager.saveToFile(output.getText(),"encrypted.txt");
+                String content = FileManager.readFromFile();
 
-            } catch(Exception ex){
-                output.setText("File error");
+                inputArea.setText(content);
+
+            } catch(Exception ex) {
+
+                resultArea.setText("File read error.");
+
             }
 
         });
 
+        frame.add(panel);
         frame.setVisible(true);
     }
 }

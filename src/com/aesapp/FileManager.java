@@ -4,16 +4,18 @@ import java.io.*;
 
 public class FileManager {
 
-    public static void saveToFile(String data, String filename) throws Exception {
+    public static void saveToFile(String data) throws Exception {
 
-        FileWriter writer = new FileWriter(filename);
+        FileWriter writer = new FileWriter("ciphertext.txt");
+
         writer.write(data);
+
         writer.close();
     }
 
-    public static String readFromFile(String filename) throws Exception {
+    public static String readFromFile() throws Exception {
 
-        BufferedReader reader = new BufferedReader(new FileReader(filename));
+        BufferedReader reader = new BufferedReader(new FileReader("ciphertext.txt"));
 
         StringBuilder content = new StringBuilder();
         String line;

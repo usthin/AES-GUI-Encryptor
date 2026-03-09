@@ -9,54 +9,47 @@ import java.util.Base64;
 
 public class AESUtil {
 
-    public static SecretKeySpec getKey(String myKey, int keySize) throws Exception {
+    private static final byte[] iv = new byte[16];
 
-        byte[] key = myKey.getBytes("UTF-8");
+    public static SecretKeySpec getKey(String userKey, int keySize) throws Exception {
 
         MessageDigest sha = MessageDigest.getInstance("SHA-256");
-        key = sha.digest(key);
+
+        byte[] key = sha.digest(userKey.getBytes("UTF-8"));
 
         key = Arrays.copyOf(key, keySize / 8);
 
         return new SecretKeySpec(key, "AES");
     }
 
-    public static String encrypt(String data, String key, String mode, int keySize) throws Exception {
+    public static String encrypt(String plaintext, String key, String mode, int keySize) throws Exception {
 
         SecretKeySpec secretKey = getKey(key, keySize);
 
         Cipher cipher = Cipher.getInstance("AES/" + mode + "/PKCS5Padding");
 
-        byte[] iv = new byte[16];
-        IvParameterSpec ivspec = new IvParameterSpec(iv);
-
-        if (!mode.equals("ECB")) {
-            cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivspec);
-        } else {
+        if(mode.equals("ECB"))
             cipher.init(Cipher.ENCRYPT_MODE, secretKey);
-        }
+        else
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey, new IvParameterSpec(iv));
 
-        byte[] encrypted = cipher.doFinal(data.getBytes());
+        byte[] encrypted = cipher.doFinal(plaintext.getBytes());
 
         return Base64.getEncoder().encodeToString(encrypted);
     }
 
-    public static String decrypt(String data, String key, String mode, int keySize) throws Exception {
+    public static String decrypt(String ciphertext, String key, String mode, int keySize) throws Exception {
 
         SecretKeySpec secretKey = getKey(key, keySize);
 
         Cipher cipher = Cipher.getInstance("AES/" + mode + "/PKCS5Padding");
 
-        byte[] iv = new byte[16];
-        IvParameterSpec ivspec = new IvParameterSpec(iv);
-
-        if (!mode.equals("ECB")) {
-            cipher.init(Cipher.DECRYPT_MODE, secretKey, ivspec);
-        } else {
+        if(mode.equals("ECB"))
             cipher.init(Cipher.DECRYPT_MODE, secretKey);
-        }
+        else
+            cipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(iv));
 
-        byte[] decoded = Base64.getDecoder().decode(data);
+        byte[] decoded = Base64.getDecoder().decode(ciphertext);
 
         return new String(cipher.doFinal(decoded));
     }
