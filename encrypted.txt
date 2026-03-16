@@ -1,1 +1,62 @@
-Error: Given final block not properly padded. Such issues can arise if a bad key is used during decryption.
+# AES Encryption Reference Guide
+
+This document provides a technical overview of the Advanced Encryption Standard (AES) and its common operational modes.
+
+---
+
+## What is AES?
+**AES (Advanced Encryption Standard)** is a symmetric block cipher chosen by the U.S. government to protect classified information.
+
+* **Symmetric:** The same secret key is used for both encryption and decryption.
+* **Block Cipher:** It processes data in fixed-size chunks called **blocks**.
+* **128-bit Block Size:** Regardless of the key length, AES always operates on blocks of **128 bits (16 bytes)**. If the data is smaller than 16 bytes, it must be "padded" to reach that size.
+
+
+
+---
+
+## Comparison: AES-128, 192, and 256
+The difference between these versions lies in the length of the key and the complexity of the encryption process (the number of "rounds").
+
+| Feature | AES-128 | AES-192 | AES-256 |
+| :--- | :--- | :--- | :--- |
+| **Key Size** | 128 bits (16 bytes) | 192 bits (24 bytes) | 256 bits (32 bytes) |
+| **Number of Rounds** | 10 | 12 | 14 |
+| **Security Level** | Secure | More Secure | Maximum Security |
+| **Performance** | Fastest | Moderate | Slower (More CPU load) |
+
+> **Note:** A "round" consists of several mathematical steps (SubBytes, ShiftRows, MixColumns, and AddRoundKey). More rounds make the ciphertext harder to crack via brute force.
+
+---
+
+## Block Cipher Modes
+Because AES only encrypts 128 bits at a time, **modes** define how to handle messages that are longer than one block.
+
+### 1. ECB (Electronic Code Book)
+The simplest mode. Each block of plaintext is encrypted independently.
+* **Mechanism:** Direct encryption of each 16-byte block.
+* **Weakness:** Identical plaintext blocks produce identical ciphertext blocks. This can reveal patterns in the data (e.g., the "ECB Penguin" effect).
+* **Use Case:** Small, random data like encryption keys.
+
+
+
+### 2. CBC (Cipher Block Chaining)
+Each block of plaintext is XORed with the previous ciphertext block before being encrypted.
+* **Mechanism:** It "chains" blocks together so that each block depends on all previous blocks.
+* **IV (Initialization Vector):** Requires a random 16-byte IV to ensure that the same message encrypted twice looks different both times.
+* **Length:** The output includes the IV + the encrypted data, which is why the character count is higher than ECB.
+
+
+
+### 3. CFB (Cipher Feedback)
+A mode that turns a block cipher into a self-synchronizing **stream cipher**.
+* **Mechanism:** It encrypts the IV/previous ciphertext first, then XORs that with the plaintext.
+* **Strength:** It can process data in segments smaller than 128 bits if needed, and like CBC, it uses an IV to ensure uniqueness.
+* **Length:** Similar to CBC, the IV is usually prepended to the ciphertext, resulting in a longer string.
+
+---
+
+### Summary of Length Differences
+If you noticed your output length changed from **24 characters** to **44 characters**:
+* **24 chars (ECB):** 16 bytes of data + Base64 encoding.
+* **44 chars (CBC/CFB):** 16 bytes of IV + 16 bytes of data = 32 bytes + Base64 encoding.
